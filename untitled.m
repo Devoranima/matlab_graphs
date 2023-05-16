@@ -27,7 +27,7 @@ function varargout = untitled(varargin)
 
 % Edit the above text to modify the response to help untitled
 
-% Last Modified by GUIDE v2.5 14-May-2023 17:19:19
+% Last Modified by GUIDE v2.5 16-May-2023 15:50:05
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -199,9 +199,9 @@ function createPlot_Callback(hObject, eventdata, handles)
 % hObject    handle to createPlot (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-if (get(handles.doNotClear, 'Value') == 1)
-    hold on
-end
+% if (get(handles.doNotClear, 'Value') == 1)
+%     hold on
+% end
 [a, b, c] = getParams(handles);
 
 width = str2double(get(handles.xWidth, 'string'));
@@ -237,23 +237,25 @@ param = strcat(color, m);
 discr = b.^2 - 4*a*c;
 if ( discr < 0)
     head = - b /(2*a);
-    xleft =head-width
-    xright = head+width
+    xleft =head-width;
+    xright = head+width;
 else
     x1 = (-b - sqrt(discr))/(2*a);
     x2 = (-b + sqrt(discr))/(2*a);
-    xleft = min(x1, x2) - width
-    xright = max(x1, x2) + width
+    xleft = min(x1, x2) - width;
+    xright = max(x1, x2) + width;
 end
 
 x=xleft:(width/dots):xright;
+set(handles.axeMain, 'XLimMode', 'manual');
+
 set(handles.axeMain, 'XLim', [xleft, xright]);
 
 y=a*x.^2+b*x+c;
 handles.Line = plot(x, y, param);
 guidata(gcbo, handles)
 
-hold off
+% hold off
 
 end
 
@@ -273,9 +275,11 @@ function doNotClear_menu_Callback(hObject, eventdata, handles)
 if strcmp(get(hObject, 'checked'), 'on')
     set(hObject, 'checked', 'off')
     set(handles.doNotClear, 'Value', 0)
+    set(handles.axeMain, 'NextPlot', 'replace')
 else
     set(hObject, 'checked', 'on')
     set(handles.doNotClear, 'Value', 1)
+    set(handles.axeMain, 'NextPlot', 'add')
 end
 end
 function doNotClear_Callback(hObject, eventdata, handles)
@@ -284,8 +288,10 @@ function doNotClear_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 if (get(hObject, 'Value') == 1)
     set(handles.doNotClear_menu, 'checked', 'on')
+    set(handles.axeMain, 'NextPlot', 'add')
 else
     set(handles.doNotClear_menu, 'checked', 'off')
+    set(handles.axeMain, 'NextPlot', 'replace')
 end
 end
 % Hint: get(hObject,'Value') returns toggle state of doNotClear_menu
@@ -473,10 +479,15 @@ function task1_Callback(hObject, eventdata, handles)
 if strcmp(get(hObject, 'checked'), 'off')
     set(hObject, 'checked', 'on')
     set(handles.task2, 'checked', 'off')
-    set(handles.task1_panel, 'Visible', 'on')
+%     set(handles.task1_panel, 'Visible', 'on')
+    set(handles.task2_panel, 'Visible', 'off')
+    
     set(handles.task1_text, 'Visible', 'on')
     set(handles.task2_text, 'Visible', 'off')
+  
     cla
+    set(handles.createPlot2, 'Visible', 'off')
+    set(handles.graph, 'Enable', 'on');
 end
 % hObject    handle to task1 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
@@ -488,10 +499,16 @@ function task2_Callback(hObject, eventdata, handles)
 if strcmp(get(hObject, 'checked'), 'off')
     set(hObject, 'checked', 'on')
     set(handles.task1, 'checked', 'off')
-    set(handles.task1_panel, 'Visible', 'off')
+%     set(handles.task1_panel, 'Visible', 'off')
+    set(handles.task2_panel, 'Visible', 'on')
+    
     set(handles.task2_text, 'Visible', 'on')
     set(handles.task1_text, 'Visible', 'off')
+    
+    
     cla
+    set(handles.createPlot2, 'Visible', 'on')
+    set(handles.graph, 'Enable', 'off');
 end
 % hObject    handle to task2 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
@@ -653,4 +670,253 @@ set(handles.marker_squares, 'checked', 'off')
 set(handles.marker_circles, 'checked', 'off')
 set(handles.marker_stars, 'checked', 'off')
 set(handles.marker_hex, 'checked', 'off')
+end
+
+
+% --- Executes on button press in createPlot2.
+function createPlot2_Callback(hObject, eventdata, handles)
+% hObject    handle to createPlot2 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+[left, right, dots] = getParameters2(handles);
+mode = getMode2(handles);
+[sin_arg, spline_arg] = getArguments2(handles);
+d=left:(pi/(dots+1)):right;
+x=left:.01:right;
+y=sin(x);
+spl = spline(x, y, d);
+handles.Line = plot(x, y, sin_arg, d, spl, spline_arg);
+end
+
+function [left, right, dots] = getParameters2(handles)
+left = get(handles.leftBorder, 'String');
+right = get(handles.rightBorder, 'String');
+dots = get(handles.pointsAmount_t2, 'String');
+left = str2double(left);
+right = str2double(right);
+dots = str2double(dots);
+
+if (isnan(left))
+    left = -10;
+end
+if (isnan(right) || right < left)
+    right = left+20;
+end
+if (isnan(dots) || dots < 5)
+    dots = 5;
+end
+
+set(handles.leftBorder, 'string', left);
+set(handles.rightBorder, 'string', right);
+set(handles.pointsAmount_t2, 'string', dots);
+end
+
+function [sin, spline] = getArguments2(handles)
+
+sin = strcat(getColor2(handles.color_sin), getMarker2(handles.marker_sin));
+spline = strcat(getColor2(handles.color_spline), getMarker2(handles.marker_spline));
+
+end
+
+function x = getColor2(object)
+color = get(object, 'Value');
+switch color
+    case 1
+        x = 'b';
+    case 2
+        x = 'g';
+    case 3
+        x = 'k';
+    case 4
+        x = 'r';
+    case 5
+        x = 'm';
+end
+end
+
+function x = getMarker2(object)
+marker = get(object, 'Value');
+switch marker
+    case 1
+        x = '-';
+    case 2
+        x = '-s';
+    case 3
+        x = '-o';
+    case 4
+        x = '-*';
+    case 5
+        x = '-hexagram';
+end
+end
+
+function x = getMode2(handles)
+if (get(handles.mode_originalNspline, 'Value'))
+    x = 1;
+elseif(get(handles.mode_exactNspline, 'Value'))
+    x = 2;
+else 
+    x = 3;
+end
+end
+
+function leftBorder_Callback(hObject, eventdata, handles)
+% hObject    handle to leftBorder (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of leftBorder as text
+%        str2double(get(hObject,'String')) returns contents of leftBorder as a double
+end
+
+% --- Executes during object creation, after setting all properties.
+function leftBorder_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to leftBorder (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+end
+
+
+function rightBorder_Callback(hObject, eventdata, handles)
+% hObject    handle to rightBorder (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of rightBorder as text
+%        str2double(get(hObject,'String')) returns contents of rightBorder as a double
+end
+
+% --- Executes during object creation, after setting all properties.
+function rightBorder_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to rightBorder (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+end
+
+
+function pointsAmount_t2_Callback(hObject, eventdata, handles)
+% hObject    handle to pointsAmount_t2 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of pointsAmount_t2 as text
+%        str2double(get(hObject,'String')) returns contents of pointsAmount_t2 as a double
+end
+
+% --- Executes during object creation, after setting all properties.
+function pointsAmount_t2_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to pointsAmount_t2 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+end
+
+
+% --- Executes on selection change in color_spline.
+function color_spline_Callback(hObject, eventdata, handles)
+% hObject    handle to color_spline (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: contents = cellstr(get(hObject,'String')) returns color_spline contents as cell array
+%        contents{get(hObject,'Value')} returns selected item from color_spline
+end
+
+% --- Executes during object creation, after setting all properties.
+function color_spline_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to color_spline (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: popupmenu controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+end
+
+% --- Executes on selection change in marker_spline.
+function marker_spline_Callback(hObject, eventdata, handles)
+% hObject    handle to marker_spline (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: contents = cellstr(get(hObject,'String')) returns marker_spline contents as cell array
+%        contents{get(hObject,'Value')} returns selected item from marker_spline
+end
+
+% --- Executes during object creation, after setting all properties.
+function marker_spline_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to marker_spline (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: popupmenu controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+end
+
+% --- Executes on selection change in marker_sin.
+function marker_sin_Callback(hObject, eventdata, handles)
+% hObject    handle to marker_sin (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: contents = cellstr(get(hObject,'String')) returns marker_sin contents as cell array
+%        contents{get(hObject,'Value')} returns selected item from marker_sin
+end
+
+% --- Executes during object creation, after setting all properties.
+function marker_sin_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to marker_sin (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: popupmenu controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+end
+
+% --- Executes on selection change in color_sin.
+function color_sin_Callback(hObject, eventdata, handles)
+% hObject    handle to color_sin (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: contents = cellstr(get(hObject,'String')) returns color_sin contents as cell array
+%        contents{get(hObject,'Value')} returns selected item from color_sin
+end
+
+% --- Executes during object creation, after setting all properties.
+function color_sin_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to color_sin (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: popupmenu controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
 end
